@@ -18,10 +18,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.parse.FindCallback;
+import com.parse.LogInCallback;
 import com.parse.Parse;
+import com.parse.ParseAnonymousUtils;
 import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
+import com.parse.ParseUser;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +44,7 @@ public class ToDoActivity extends AppCompatActivity {
 
     private String currentToDo;
     private String currentId;
+    private String currentUser;
 
     private String doneUndone;
     private String mark;
@@ -113,6 +117,18 @@ public class ToDoActivity extends AppCompatActivity {
                     .build()
             );
 
+            ParseAnonymousUtils.logIn(new LogInCallback() {
+                @Override
+                public void done(ParseUser user, ParseException e) {
+                    if (e == null) {
+                        currentUser = user.getObjectId().toString();
+                        Toast.makeText(getBaseContext(), "User - " + currentUser + " logged in.", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(getBaseContext(), "login failed", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+
             retrieveRecord();
 
 
@@ -133,6 +149,7 @@ public class ToDoActivity extends AppCompatActivity {
         if (!TextUtils.isEmpty(todo)) {
             final ParseObject todoObject = new ParseObject("ToDo");
             todoObject.put("todo", todo);
+            todoObject.put("user", currentUser);
             todoObject.put("doneUndone", "undone");
             try {
                 todoObject.save();
@@ -156,8 +173,13 @@ public class ToDoActivity extends AppCompatActivity {
             public void done(List<ParseObject> todolist, ParseException e) {
                 if (e == null) {
                     for (ParseObject t : todolist) {
-                        t.deleteInBackground();
-                        Toast.makeText(getBaseContext(), "Record deleted.", Toast.LENGTH_SHORT).show();
+                        try {
+                            t.delete();
+                            Toast.makeText(getBaseContext(), "Record deleted.", Toast.LENGTH_SHORT).show();
+                        } catch (ParseException e1) {
+                            Toast.makeText(getBaseContext(), "Cannot delete this time.  Try again.", Toast.LENGTH_SHORT).show();
+                        }
+
                     }
                 } else {
                     Toast.makeText(getBaseContext(), "No todo id captured.", Toast.LENGTH_SHORT).show();
@@ -169,6 +191,7 @@ public class ToDoActivity extends AppCompatActivity {
 
     private void deleteAll() {
         ParseQuery<ParseObject> query = ParseQuery.getQuery("ToDo");
+        query.whereEqualTo("user", currentUser);
         query.findInBackground(new FindCallback<ParseObject>() {
             @Override
             public void done(List<ParseObject> objects, ParseException e) {
@@ -177,7 +200,7 @@ public class ToDoActivity extends AppCompatActivity {
                         ParseObject.deleteAll(objects);
                         Toast.makeText(getBaseContext(), "Records deleted.", Toast.LENGTH_SHORT).show();
                     } catch (ParseException e1) {
-                        Toast.makeText(getBaseContext(), "Cannot delete this time.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getBaseContext(), "Cannot delete this time.  Try again.", Toast.LENGTH_SHORT).show();
                     }
                 } else {
                     Toast.makeText(getBaseContext(), "No records.", Toast.LENGTH_SHORT).show();
@@ -194,6 +217,7 @@ public class ToDoActivity extends AppCompatActivity {
         View loadingIndicator = findViewById(R.id.loading_indicator);
         loadingIndicator.setVisibility(View.VISIBLE);
         ParseQuery<ParseObject> query = ParseQuery.getQuery("ToDo");
+        query.whereEqualTo("user", currentUser);
         query.findInBackground(new FindCallback<ParseObject>() {
             @Override
             public void done(List<ParseObject> objects, ParseException e) {
@@ -265,9 +289,13 @@ public class ToDoActivity extends AppCompatActivity {
                         if (e == null) {
                             for (ParseObject t : todolist) {
                                 t.put("todo", todo);
-                                t.saveInBackground();
-                                retrieveRecord();
-                                Toast.makeText(getBaseContext(), "Records updated.", Toast.LENGTH_SHORT).show();
+                                try {
+                                    t.save();
+                                    Toast.makeText(getBaseContext(), "Records updated.", Toast.LENGTH_SHORT).show();
+                                } catch (ParseException e1) {
+                                    Toast.makeText(getBaseContext(), "Error.  Try again.", Toast.LENGTH_SHORT).show();
+                                }
+
                             }
                         } else {
                             Toast.makeText(getBaseContext(), "Record not updated.", Toast.LENGTH_SHORT).show();
@@ -289,9 +317,13 @@ public class ToDoActivity extends AppCompatActivity {
                         if (e == null) {
                             for (ParseObject t : todolist) {
                                 t.put("doneUndone", doneUndone);
-                                t.saveInBackground();
-                                retrieveRecord();
-                                Toast.makeText(getBaseContext(), "Records updated.", Toast.LENGTH_SHORT).show();
+                                try {
+                                    t.save();
+                                    Toast.makeText(getBaseContext(), "Records updated.", Toast.LENGTH_SHORT).show();
+                                } catch (ParseException e1) {
+                                    Toast.makeText(getBaseContext(), "Error.  Try again.", Toast.LENGTH_SHORT).show();
+                                }
+
                             }
                         } else {
                             Toast.makeText(getBaseContext(), "Record not updated.", Toast.LENGTH_SHORT).show();
