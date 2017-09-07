@@ -134,7 +134,12 @@ public class ToDoActivity extends AppCompatActivity {
             final ParseObject todoObject = new ParseObject("ToDo");
             todoObject.put("todo", todo);
             todoObject.put("doneUndone", "undone");
-            todoObject.saveInBackground();
+            try {
+                todoObject.save();
+                Toast.makeText(getBaseContext(), "Saved!", Toast.LENGTH_SHORT).show();
+            } catch (ParseException e) {
+                Toast.makeText(getBaseContext(), "Error.  Try saving again.", Toast.LENGTH_SHORT).show();
+            }
 
         } else {
             Toast.makeText(getBaseContext(), "Please fill out.", Toast.LENGTH_SHORT).show();
@@ -168,8 +173,12 @@ public class ToDoActivity extends AppCompatActivity {
             @Override
             public void done(List<ParseObject> objects, ParseException e) {
                 if (e == null) {
-                    ParseObject.deleteAllInBackground(objects);
-                    Toast.makeText(getBaseContext(), "Records deleted.", Toast.LENGTH_SHORT).show();
+                    try {
+                        ParseObject.deleteAll(objects);
+                        Toast.makeText(getBaseContext(), "Records deleted.", Toast.LENGTH_SHORT).show();
+                    } catch (ParseException e1) {
+                        Toast.makeText(getBaseContext(), "Cannot delete this time.", Toast.LENGTH_SHORT).show();
+                    }
                 } else {
                     Toast.makeText(getBaseContext(), "No records.", Toast.LENGTH_SHORT).show();
                 }
