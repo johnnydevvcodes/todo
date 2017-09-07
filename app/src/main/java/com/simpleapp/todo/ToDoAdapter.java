@@ -12,15 +12,9 @@ import android.widget.TextView;
 
 import java.util.List;
 
-import static android.R.attr.visible;
+class ToDoAdapter extends ArrayAdapter<ToDo> {
 
-/**
- * Created by sarge.andee on 06/09/2017.
- */
-
-public class ToDoAdapter extends ArrayAdapter<ToDo> {
-
-    public ToDoAdapter(Context context, List<ToDo> toDoList) {
+    ToDoAdapter(Context context, List<ToDo> toDoList) {
         super(context, 0, toDoList);
     }
 
@@ -34,7 +28,7 @@ public class ToDoAdapter extends ArrayAdapter<ToDo> {
         }
 
         //Get the position of current todo
-        final ToDo todo = (ToDo) getItem(position);
+        final ToDo todo = getItem(position);
 
         TextView todoTextView = (TextView) listItemView.findViewById(R.id.todoTextItem);
         todoTextView.setText(todo.getTodo().toString().trim());

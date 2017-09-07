@@ -5,4 +5,9 @@
 
     <string name="no_records">Empty record.</string>
 
+    <string name="add_todo">Add to-do</string>
+
+    <string name="save">save</string>
+
+    <string name="delete_all">delete all</string>
 </resources>

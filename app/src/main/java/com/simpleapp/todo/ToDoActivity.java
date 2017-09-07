@@ -116,12 +116,11 @@ public class ToDoActivity extends AppCompatActivity {
             retrieveRecord();
 
 
-
-        }else {
+        } else {
 
             View loadingIndicator = findViewById(R.id.loading_indicator);
             loadingIndicator.setVisibility(View.GONE);
-            mEmptyStateTextView.setText("No internet connection.");
+            mEmptyStateTextView.setText(R.string.no_internet_connection);
         }
     }
 
@@ -189,9 +188,9 @@ public class ToDoActivity extends AppCompatActivity {
         query.findInBackground(new FindCallback<ParseObject>() {
             @Override
             public void done(List<ParseObject> objects, ParseException e) {
-                if (e == null) {
+                if (e == null && objects.size() != 0) {
 
-                    ArrayList<ToDo> todoList = new ArrayList<ToDo>();
+                    ArrayList<ToDo> todoList = new ArrayList<>();
 
                     for (ParseObject p : objects) {
                         ToDo toDo = new ToDo(p.getString("todo"), p.getObjectId().toString(), p.getString("doneUndone"));
@@ -205,8 +204,10 @@ public class ToDoActivity extends AppCompatActivity {
                     mEmptyStateTextView.setText("");
 
                 } else {
+                    View loadingIndicator = findViewById(R.id.loading_indicator);
+                    loadingIndicator.setVisibility(View.GONE);
                     Toast.makeText(getBaseContext(), "No records found.", Toast.LENGTH_SHORT).show();
-                    mEmptyStateTextView.setText("Empty record.");
+                    mEmptyStateTextView.setText(R.string.no_records);
                 }
                 EditText todoTextView = (EditText) findViewById(R.id.todo_edit);
                 todoTextView.setText("");
@@ -294,5 +295,4 @@ public class ToDoActivity extends AppCompatActivity {
         AlertDialog b = dialogBuilder.create();
         b.show();
     }
-
 }
