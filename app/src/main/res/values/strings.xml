@@ -1,6 +1,8 @@
 <resources>
     <string name="app_name">To Do</string>
 
-    <string name="dummy_button">Dummy Button</string>
-    <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="no_internet_connection">No network.</string>
+
+    <string name="no_records">Empty record.</string>
+
 </resources>

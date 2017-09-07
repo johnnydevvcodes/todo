@@ -1,9 +1,12 @@
 package com.simpleapp.todo;
 
+import android.content.Context;
 import android.content.DialogInterface;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -31,7 +34,7 @@ import java.util.List;
 public class ToDoActivity extends AppCompatActivity {
 
     // This is the Adapter being used for listing
-
+    private TextView mEmptyStateTextView;
     private ListView listView;
 
     private ToDoAdapter mAdapter;
@@ -48,12 +51,9 @@ public class ToDoActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
-        Parse.initialize(new Parse.Configuration.Builder(this)
-                .applicationId("QenWQd7lPlUSHRdyIBbznPGUG9LGmZQZVhuSdBcR")
-                .clientKey("oflD9Cm8YtWRCWHPh6AiMKdbUl2VzjSTLBDFYpCF")
-                .server("https://parseapi.back4app.com/")
-                .build()
-        );
+        mEmptyStateTextView = (TextView) findViewById(R.id.empty);
+
+        checkNetworkThenRetrieve();
 
         listView = (ListView) findViewById(R.id.list);
 
@@ -78,8 +78,6 @@ public class ToDoActivity extends AppCompatActivity {
         });
 
 
-        retrieveRecord();
-
         Button b = (Button) findViewById(R.id.add);
         b.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -98,6 +96,34 @@ public class ToDoActivity extends AppCompatActivity {
 
     }
 
+    private void checkNetworkThenRetrieve() {
+        //get a reference to connectivity manager to check state of network connectivity
+        ConnectivityManager connMgr = (ConnectivityManager)
+                getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        //get details on the currently active default data network
+        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+
+        //if there is a network connection, fetch data
+        if (networkInfo != null && networkInfo.isConnected()) {
+            Parse.initialize(new Parse.Configuration.Builder(this)
+                    .applicationId("QenWQd7lPlUSHRdyIBbznPGUG9LGmZQZVhuSdBcR")
+                    .clientKey("oflD9Cm8YtWRCWHPh6AiMKdbUl2VzjSTLBDFYpCF")
+                    .server("https://parseapi.back4app.com/")
+                    .build()
+            );
+
+            retrieveRecord();
+
+
+
+        }else {
+
+            View loadingIndicator = findViewById(R.id.loading_indicator);
+            loadingIndicator.setVisibility(View.GONE);
+            mEmptyStateTextView.setText("No internet connection.");
+        }
+    }
 
     /**
      * addRecord() will  add a single record to the parse db
@@ -110,10 +136,11 @@ public class ToDoActivity extends AppCompatActivity {
             todoObject.put("todo", todo);
             todoObject.put("doneUndone", "undone");
             todoObject.saveInBackground();
-            retrieveRecord();
+
         } else {
             Toast.makeText(getBaseContext(), "Please fill out.", Toast.LENGTH_SHORT).show();
         }
+        retrieveRecord();
     }
 
 
@@ -156,11 +183,12 @@ public class ToDoActivity extends AppCompatActivity {
         if (mAdapter != null) {
             mAdapter.clear();
         }
+        View loadingIndicator = findViewById(R.id.loading_indicator);
+        loadingIndicator.setVisibility(View.VISIBLE);
         ParseQuery<ParseObject> query = ParseQuery.getQuery("ToDo");
         query.findInBackground(new FindCallback<ParseObject>() {
             @Override
             public void done(List<ParseObject> objects, ParseException e) {
-                StringBuilder sb = new StringBuilder();
                 if (e == null) {
 
                     ArrayList<ToDo> todoList = new ArrayList<ToDo>();
@@ -172,15 +200,18 @@ public class ToDoActivity extends AppCompatActivity {
                     mAdapter = new ToDoAdapter(getBaseContext(), todoList);
                     listView.setAdapter(mAdapter);
                     mAdapter.notifyDataSetChanged();
+                    View loadingIndicator = findViewById(R.id.loading_indicator);
+                    loadingIndicator.setVisibility(View.GONE);
+                    mEmptyStateTextView.setText("");
+
                 } else {
                     Toast.makeText(getBaseContext(), "No records found.", Toast.LENGTH_SHORT).show();
+                    mEmptyStateTextView.setText("Empty record.");
                 }
                 EditText todoTextView = (EditText) findViewById(R.id.todo_edit);
                 todoTextView.setText("");
             }
         });
-
-
     }
 
     private void showChangeLangDialog() {

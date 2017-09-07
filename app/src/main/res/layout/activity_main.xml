@@ -5,53 +5,76 @@
     android:background="#ffff"
     tools:context="com.simpleapp.todo.ToDoActivity">
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
-    <LinearLayout
-        android:layout_weight="0"
-        android:id="@+id/editArea"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:layout_height="match_parent">
 
-        <EditText
-            android:id="@+id/todo_edit"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="8dp"
-            android:layout_weight="1"
-            android:hint="Add to-do"
-            android:textAppearance="?android:attr/textAppearanceLarge" />
+            android:layout_height="match_parent"
+            android:orientation="vertical">
 
-        <Button
-            android:id="@+id/add"
+            <LinearLayout
+                android:id="@+id/editArea"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="0"
+                android:orientation="horizontal">
+
+                <EditText
+                    android:id="@+id/todo_edit"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="8dp"
+                    android:layout_weight="1"
+                    android:hint="Add to-do"
+                    android:textAppearance="?android:attr/textAppearanceLarge" />
+
+                <Button
+                    android:id="@+id/add"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0"
+                    android:text="save" />
+
+            </LinearLayout>
+
+
+            <ListView
+                android:id="@+id/list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/editArea"
+                android:layout_margin="8dp"
+                android:layout_weight="1"
+                android:padding="4dp" />
+
+
+            <Button
+                android:id="@+id/delete_all"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="0"
+                android:text="delete all" />
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/empty"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-           android:layout_weight="0"
-            android:text="save" />
+            android:layout_centerInParent="true"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
 
-    </LinearLayout>
-
-
-    <ListView
-        android:layout_weight="1"
-        android:id="@+id/list"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="8dp"
-        android:padding="4dp"
-        android:layout_below="@id/editArea"/>
-
-
-        <Button
-            android:id="@+id/delete_all"
+        <ProgressBar
+            android:id="@+id/loading_indicator"
+            style="@style/Widget.AppCompat.ProgressBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="0"
-            android:text="delete all" />
+            android:layout_centerInParent="true"
+            android:progressTint="@android:color/background_dark" />
 
-    </LinearLayout>
+    </RelativeLayout>
+
 
 </FrameLayout>
