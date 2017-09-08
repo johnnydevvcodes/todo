@@ -16,7 +16,6 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.parse.FindCallback;
 import com.parse.LogInCallback;
 import com.parse.Parse;
@@ -30,13 +29,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-/**
- * An example full-screen activity that shows and hides the system UI (i.e.
- * status bar and navigation/system bar) with user interaction.
- */
 public class ToDoActivity extends AppCompatActivity {
 
-    // This is the Adapter being used for listing
     private TextView mEmptyStateTextView;
     private ListView listView;
 
@@ -82,8 +76,8 @@ public class ToDoActivity extends AppCompatActivity {
         });
 
 
-        Button b = (Button) findViewById(R.id.add);
-        b.setOnClickListener(new View.OnClickListener() {
+        Button add = (Button) findViewById(R.id.add);
+        add.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 addRecord();
@@ -122,15 +116,15 @@ public class ToDoActivity extends AppCompatActivity {
                 public void done(ParseUser user, ParseException e) {
                     if (e == null) {
                         currentUser = user.getObjectId().toString();
+
                         Toast.makeText(getBaseContext(), "User - " + currentUser + " logged in.", Toast.LENGTH_SHORT).show();
+                        retrieveRecord(currentUser);
                     } else {
                         Toast.makeText(getBaseContext(), "login failed", Toast.LENGTH_SHORT).show();
+                        retrieveRecord(currentUser);
                     }
                 }
             });
-
-            retrieveRecord();
-
 
         } else {
 
@@ -144,24 +138,25 @@ public class ToDoActivity extends AppCompatActivity {
      * addRecord() will  add a single record to the parse db
      */
     private void addRecord() {
+
         TextView todotv = (TextView) findViewById(R.id.todo_edit);
         String todo = todotv.getText().toString().trim();
         if (!TextUtils.isEmpty(todo)) {
-            final ParseObject todoObject = new ParseObject("ToDo");
-            todoObject.put("todo", todo);
-            todoObject.put("user", currentUser);
-            todoObject.put("doneUndone", "undone");
             try {
+                final ParseObject todoObject = new ParseObject("ToDo");
+                todoObject.put("todo", todo);
+                todoObject.put("user", currentUser);
+                todoObject.put("doneUndone", "undone");
                 todoObject.save();
                 Toast.makeText(getBaseContext(), "Saved!", Toast.LENGTH_SHORT).show();
-            } catch (ParseException e) {
-                Toast.makeText(getBaseContext(), "Error.  Try saving again.", Toast.LENGTH_SHORT).show();
+                retrieveRecord(currentUser);
+            } catch (Exception e) {
+                Toast.makeText(getBaseContext(), "Error.  Check network.", Toast.LENGTH_SHORT).show();
             }
-
         } else {
             Toast.makeText(getBaseContext(), "Please fill out.", Toast.LENGTH_SHORT).show();
         }
-        retrieveRecord();
+
     }
 
 
@@ -176,7 +171,7 @@ public class ToDoActivity extends AppCompatActivity {
                         try {
                             t.delete();
                             Toast.makeText(getBaseContext(), "Record deleted.", Toast.LENGTH_SHORT).show();
-                        } catch (ParseException e1) {
+                        } catch (Exception e1) {
                             Toast.makeText(getBaseContext(), "Cannot delete this time.  Try again.", Toast.LENGTH_SHORT).show();
                         }
 
@@ -184,7 +179,7 @@ public class ToDoActivity extends AppCompatActivity {
                 } else {
                     Toast.makeText(getBaseContext(), "No todo id captured.", Toast.LENGTH_SHORT).show();
                 }
-                retrieveRecord();
+                retrieveRecord(currentUser);
             }
         });
     }
@@ -199,42 +194,46 @@ public class ToDoActivity extends AppCompatActivity {
                     try {
                         ParseObject.deleteAll(objects);
                         Toast.makeText(getBaseContext(), "Records deleted.", Toast.LENGTH_SHORT).show();
-                    } catch (ParseException e1) {
+                    } catch (Exception e1) {
                         Toast.makeText(getBaseContext(), "Cannot delete this time.  Try again.", Toast.LENGTH_SHORT).show();
                     }
                 } else {
                     Toast.makeText(getBaseContext(), "No records.", Toast.LENGTH_SHORT).show();
                 }
-                retrieveRecord();
+                retrieveRecord(currentUser);
             }
         });
     }
 
-    private void retrieveRecord() {
+    private void retrieveRecord(String user) {
         if (mAdapter != null) {
             mAdapter.clear();
         }
         View loadingIndicator = findViewById(R.id.loading_indicator);
         loadingIndicator.setVisibility(View.VISIBLE);
         ParseQuery<ParseObject> query = ParseQuery.getQuery("ToDo");
-        query.whereEqualTo("user", currentUser);
+        query.whereEqualTo("user", user);
         query.findInBackground(new FindCallback<ParseObject>() {
             @Override
             public void done(List<ParseObject> objects, ParseException e) {
                 if (e == null && objects.size() != 0) {
+                    try {
+                        ArrayList<ToDo> todoList = new ArrayList<>();
 
-                    ArrayList<ToDo> todoList = new ArrayList<>();
-
-                    for (ParseObject p : objects) {
-                        ToDo toDo = new ToDo(p.getString("todo"), p.getObjectId().toString(), p.getString("doneUndone"));
-                        todoList.add(toDo);
+                        for (ParseObject p : objects) {
+                            ToDo toDo = new ToDo(p.getString("todo"), p.getObjectId().toString(), p.getString("doneUndone"));
+                            todoList.add(toDo);
+                        }
+                        mAdapter = new ToDoAdapter(getBaseContext(), todoList);
+                        listView.setAdapter(mAdapter);
+                        mAdapter.notifyDataSetChanged();
+                        View loadingIndicator = findViewById(R.id.loading_indicator);
+                        loadingIndicator.setVisibility(View.GONE);
+                        mEmptyStateTextView.setText("");
+                    } catch (Exception ex) {
+                        Toast.makeText(getBaseContext(), "Error.  Check network.", Toast.LENGTH_SHORT).show();
                     }
-                    mAdapter = new ToDoAdapter(getBaseContext(), todoList);
-                    listView.setAdapter(mAdapter);
-                    mAdapter.notifyDataSetChanged();
-                    View loadingIndicator = findViewById(R.id.loading_indicator);
-                    loadingIndicator.setVisibility(View.GONE);
-                    mEmptyStateTextView.setText("");
+
 
                 } else {
                     View loadingIndicator = findViewById(R.id.loading_indicator);
@@ -300,7 +299,7 @@ public class ToDoActivity extends AppCompatActivity {
                         } else {
                             Toast.makeText(getBaseContext(), "Record not updated.", Toast.LENGTH_SHORT).show();
                         }
-                        retrieveRecord();
+                        retrieveRecord(currentUser);
                     }
                 });
             }
@@ -328,7 +327,7 @@ public class ToDoActivity extends AppCompatActivity {
                         } else {
                             Toast.makeText(getBaseContext(), "Record not updated.", Toast.LENGTH_SHORT).show();
                         }
-                        retrieveRecord();
+                        retrieveRecord(currentUser);
                     }
                 });
             }
